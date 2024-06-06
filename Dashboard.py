@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QWidget, QSlider, QPushButton, QSpinBox, QLabel, \
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 from Serial_com import SerialComm
+from BrainAPI_Handlers import Handlers
 
 class Gui(QWidget):
 
@@ -10,6 +11,7 @@ class Gui(QWidget):
         super().__init__(*args, **kwargs)
 
         self.serial_comm = SerialComm()
+        self.handlers = Handlers(self.serial_comm)
 
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -19,7 +21,7 @@ class Gui(QWidget):
         self.cheekLEDButton = QPushButton("Cheek LED")
         self.cheekLEDButton.setCheckable(True)
         self.cheekLEDButton.setChecked(False)
-        self.cheekLEDButton.clicked.connect(self.cheekLEDButtonClicked)
+        self.cheekLEDButton.clicked.connect(self.handlers.cheekLEDButtonClicked)
 
         self.hsv_group = QGroupBox("HSV Color Picker")
         self.hsv_layout = QVBoxLayout()
@@ -57,7 +59,7 @@ class Gui(QWidget):
         self.hsv_layout.addWidget(self.color_preview, alignment=Qt.AlignCenter)
 
         self.set_color_button = QPushButton("Set LED Color")
-        self.set_color_button.clicked.connect(self.setLEDColorClicked)
+        self.set_color_button.clicked.connect(lambda: self.handlers.setLEDColorClicked(self.hue_slider, self.sat_slider, self.val_slider, self.pick_LED_strip_spinbox, self.anim_combo))
         self.hue_slider.valueChanged.connect(self.updateColorPreview)
         self.sat_slider.valueChanged.connect(self.updateColorPreview)
         self.val_slider.valueChanged.connect(self.updateColorPreview)
@@ -86,7 +88,7 @@ class Gui(QWidget):
         self.pick_LED_strip_layout.addWidget(self.pick_LED_strip_spinbox)
 
         self.set_eye_button = QPushButton("Set eye")
-        self.set_eye_button.clicked.connect(self.setEyeClicked)
+        self.set_eye_button.clicked.connect(lambda: self.handlers.setEyeClicked(self.pick_eye_spinbox, self.eye_x_spinbox, self.eye_y_spinbox, self.eye_anim_combo))
 
         self.eye_anim_widget = QWidget()
         self.eye_anim_layout = QVBoxLayout()
@@ -132,7 +134,7 @@ class Gui(QWidget):
         self.head_speed_spinbox = QSpinBox()
         self.head_speed_spinbox.setSuffix(" rpm")
         self.set_head_button = QPushButton("Set head")
-        self.set_head_button.clicked.connect(self.setHeadClicked)
+        self.set_head_button.clicked.connect(lambda: self.handlers.setHeadClicked(self.head_speed_spinbox, self.head_azimuth_spinbox, self.head_elevation_spinbox))
 
         self.layout.addWidget(self.head_speed_spinbox, 2, 2)
         self.layout.addWidget(self.head_elevation_spinbox, 2, 3)
@@ -150,83 +152,6 @@ class Gui(QWidget):
         self.layout.addWidget(self.hsv_group, 4, 5)
         self.layout.addWidget(self.set_color_button, 4, 6)
         self.layout.addWidget(self.cheekLEDButton, 5, 6)
-
-    def cheekLEDButtonClicked(self):
-        self.serial_comm.send("Cheek LED")
-        print("Cheek LED clicked")
-
-    def setLEDColorClicked(self):
-        h = self.hue_slider.value()
-        s = self.sat_slider.value()
-        v = self.val_slider.value()
-        strip_nr = self.pick_LED_strip_spinbox.value()
-        anim = self.anim_combo.currentText()
-        color = QColor.fromHsv(h, s, v)
-        r, g, b = color.red(), color.green(), color.blue()
-
-        # Set RGB command
-        command = f"LS101 {strip_nr} {r} {g} {b}\r\n"
-        self.serial_comm.send(command)
-
-        if anim == "Blink":
-            duration = 1000  
-            command = f"LS102 {strip_nr} {r} {g} {b} {duration}\r\n"
-            self.serial_comm.send(command)
-        elif anim == "Fade In":
-            duration = 1000  
-            command = f"LS104 {strip_nr} {duration}\r\n"
-            self.serial_comm.send(command)
-        elif anim == "Fade Out":
-            duration = 1000  
-            command = f"LS103 {strip_nr} {duration}\r\n"
-            self.serial_comm.send(command)
-        elif anim == "Solid Color":
-            # No additional command needed for solid color
-            pass
-        else:
-            print(f"Animation {anim} is not implemented")
-
-        print(f"Set LED strip {strip_nr} color to HSV({h}, {s}, {v}), RGB({r}, {g}, {b}) with {anim} animation")
-
-    def setEyeClicked(self):
-        eye_nr = self.pick_eye_spinbox.value()
-        x = self.eye_x_spinbox.value()
-        y = self.eye_y_spinbox.value()
-        anim = self.eye_anim_combo.currentText()
-
-        # Move display command
-        command = f"DS101 {eye_nr} {x} {y} 1000\r\n" 
-        self.serial_comm.send(command)
-
-        # Animation commands
-        if anim == "Blink":
-            command = f"DS102 {eye_nr} 1\r\n"  # Blink
-        elif anim == "Confusion":
-            command = f"DS103 {eye_nr} 1\r\n"  # Confusion
-        elif anim == "Think":
-            command = f"DS104 {eye_nr} 1\r\n"  # Think
-        else:
-            print(f"Animation {anim} is not implemented")
-            return
-
-        self.serial_comm.send(command)
-        print(f"Set eye {eye_nr} to position ({x}, {y}) with {anim} animation")
-
-    def setHeadClicked(self):
-        speed = self.head_speed_spinbox.value()
-        azimuth = self.head_azimuth_spinbox.value()
-        elevation = self.head_elevation_spinbox.value()
-        
-        command = f"\nM101 1 {speed}\r\n" # First motor
-        self.serial_comm.send(command)
-        command = f"M101 2 {speed}\r\n" # Second motor
-        self.serial_comm.send(command)
-        command = f"M102 1 {azimuth}\r\n" # First motor
-        self.serial_comm.send(command)
-        command = f"M102 2 {elevation}\r\n"
-        self.serial_comm.send(command)
-        
-        print(f"Set head to azimuth {azimuth}, elevation {elevation} with speed {speed}")
 
     def updateColorPreview(self):
         h = self.hue_slider.value()

@@ -13,7 +13,7 @@ class Gui(QWidget):
 
         self.layout = QGridLayout()
         self.setLayout(self.layout)
-        self.setWindowTitle("Healthbot")
+        self.setWindowTitle("Healthbot | DEMO DASH v1.0")
         self.resize(1600, 800)
 
         self.cheekLEDButton = QPushButton("Cheek LED")
@@ -152,8 +152,8 @@ class Gui(QWidget):
         self.layout.addWidget(self.cheekLEDButton, 5, 6)
 
         self.serial = QSerialPort()
-        self.serial.setPortName("COM3")  # Hardcoded port, replace with your actual port
-        self.serial.setBaudRate(QSerialPort.Baud9600)  # Adjust baud rate as needed
+        self.serial.setPortName("COM14")  # Hardcoded port, replace with your actual port
+        self.serial.setBaudRate(QSerialPort.Baud115200)  # Adjust baud rate as needed
         self.serial.setDataBits(QSerialPort.Data8)
         self.serial.setParity(QSerialPort.NoParity)
         self.serial.setStopBits(QSerialPort.OneStop)
@@ -198,8 +198,18 @@ class Gui(QWidget):
         speed = self.head_speed_spinbox.value()
         azimuth = self.head_azimuth_spinbox.value()
         elevation = self.head_elevation_spinbox.value()
-        command = f"Set Head {speed}, {azimuth}, {elevation}\n"
+        
+        # command = f"Set Head {speed}, {azimuth}, {elevation}\n"
+        
+        command = f"\n M101 1 {speed}\r\n" # First motor
         self.send(command)
+        command = f"M101 2 {speed}\r\n" # Second motor
+        self.send(command)
+        command = f"M102 1 {azimuth}\r\n" # First motor
+        self.send(command)
+        command = f"M102 2 {elevation}\r\n"
+        self.send(command)
+        
         print(f"Set head to azimuth {azimuth}, elevation {elevation} with speed {speed}")
 
     def updateColorPreview(self):

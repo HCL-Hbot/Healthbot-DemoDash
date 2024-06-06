@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import QWidget, QSlider, QPushButton, QSpinBox, QLabel, \
-    QHBoxLayout, QVBoxLayout, QGridLayout, QGroupBox, QComboBox
+    QHBoxLayout, QVBoxLayout, QGridLayout, QGroupBox, QComboBox, QTabWidget, QLineEdit
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 from Serial_com import SerialComm
 from BrainAPI_Handlers import Handlers
+import serial.tools.list_ports
 
 class Gui(QWidget):
 
@@ -13,10 +14,26 @@ class Gui(QWidget):
         self.serial_comm = SerialComm()
         self.handlers = Handlers(self.serial_comm)
 
-        self.layout = QGridLayout()
+        self.layout = QVBoxLayout()
         self.setLayout(self.layout)
         self.setWindowTitle("Healthbot | DEMO DASH v1.1")
         self.resize(1600, 800)
+
+        self.tabs = QTabWidget()
+        self.layout.addWidget(self.tabs)
+
+        self.main_tab = QWidget()
+        self.settings_tab = QWidget()
+
+        self.tabs.addTab(self.main_tab, "Main")
+        self.tabs.addTab(self.settings_tab, "Settings")
+
+        self.init_main_tab()
+        self.init_settings_tab()
+
+    def init_main_tab(self):
+        layout = QGridLayout()
+        self.main_tab.setLayout(layout)
 
         self.cheekLEDButton = QPushButton("Cheek LED")
         self.cheekLEDButton.setCheckable(True)
@@ -136,22 +153,52 @@ class Gui(QWidget):
         self.set_head_button = QPushButton("Set head")
         self.set_head_button.clicked.connect(lambda: self.handlers.setHeadClicked(self.head_speed_spinbox, self.head_azimuth_spinbox, self.head_elevation_spinbox))
 
-        self.layout.addWidget(self.head_speed_spinbox, 2, 2)
-        self.layout.addWidget(self.head_elevation_spinbox, 2, 3)
-        self.layout.addWidget(self.head_azimuth_spinbox, 2, 4)
-        self.layout.addWidget(self.set_head_button, 2, 6)
+        layout.addWidget(self.head_speed_spinbox, 2, 2)
+        layout.addWidget(self.head_elevation_spinbox, 2, 3)
+        layout.addWidget(self.head_azimuth_spinbox, 2, 4)
+        layout.addWidget(self.set_head_button, 2, 6)
 
-        self.layout.addWidget(self.pick_eye, 3, 1)        
-        self.layout.addWidget(self.eye_anim_widget, 3, 2)
-        self.layout.addWidget(self.eye_x_spinbox, 3, 3)
-        self.layout.addWidget(self.eye_y_spinbox, 3, 4)
-        self.layout.addWidget(self.set_eye_button, 3, 6)
+        layout.addWidget(self.pick_eye, 3, 1)        
+        layout.addWidget(self.eye_anim_widget, 3, 2)
+        layout.addWidget(self.eye_x_spinbox, 3, 3)
+        layout.addWidget(self.eye_y_spinbox, 3, 4)
+        layout.addWidget(self.set_eye_button, 3, 6)
         
-        self.layout.addWidget(self.pick_LED_strip, 4, 1)        
-        self.layout.addWidget(self.led_anim_widget, 4, 2)
-        self.layout.addWidget(self.hsv_group, 4, 5)
-        self.layout.addWidget(self.set_color_button, 4, 6)
-        self.layout.addWidget(self.cheekLEDButton, 5, 6)
+        layout.addWidget(self.pick_LED_strip, 4, 1)        
+        layout.addWidget(self.led_anim_widget, 4, 2)
+        layout.addWidget(self.hsv_group, 4, 5)
+        layout.addWidget(self.set_color_button, 4, 6)
+        layout.addWidget(self.cheekLEDButton, 5, 6)
+
+    def init_settings_tab(self):
+        layout = QVBoxLayout()
+        self.settings_tab.setLayout(layout)
+
+        self.com_port_label = QLabel("Select COM Port:")
+        self.com_port_combo = QComboBox()
+        self.refresh_com_ports()
+
+        self.refresh_button = QPushButton("Refresh COM Ports")
+        self.refresh_button.clicked.connect(self.refresh_com_ports)
+
+        self.set_port_button = QPushButton("Set COM Port")
+        self.set_port_button.clicked.connect(self.set_com_port)
+
+        layout.addWidget(self.com_port_label)
+        layout.addWidget(self.com_port_combo)
+        layout.addWidget(self.refresh_button)
+        layout.addWidget(self.set_port_button)
+
+    def refresh_com_ports(self):
+        ports = serial.tools.list_ports.comports()
+        self.com_port_combo.clear()
+        for port in ports:
+            self.com_port_combo.addItem(port.device)
+
+    def set_com_port(self):
+        selected_port = self.com_port_combo.currentText()
+        self.serial_comm.set_port_name(selected_port)
+        print(f"Set COM port to {selected_port}")
 
     def updateColorPreview(self):
         h = self.hue_slider.value()

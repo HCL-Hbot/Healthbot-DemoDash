@@ -100,10 +100,10 @@ class Gui(QWidget):
         self.pick_LED_strip.setLayout(self.pick_LED_strip_layout)
 
         self.pick_LED_strip_spinbox = QSpinBox()
-        self.pick_LED_strip_spinbox.setRange(0, 1)
-        self.pick_LED_strip_spinbox.setValue(0)
+        self.pick_LED_strip_spinbox.setRange(1, 2)
+        self.pick_LED_strip_spinbox.setValue(1)
         self.pick_LED_strip_layout.addWidget(self.pick_LED_strip_spinbox)
-
+# START OF EYES #   
         self.set_eye_button = QPushButton("Set eye")
         self.set_eye_button.clicked.connect(lambda: self.handlers.setEyeClicked(self.pick_eye_spinbox, self.eye_x_spinbox, self.eye_y_spinbox, self.eye_anim_combo))
 
@@ -125,30 +125,32 @@ class Gui(QWidget):
         self.pick_eye.setLayout(self.pick_eye_layout)
 
         self.pick_eye_spinbox = QSpinBox()
-        self.pick_eye_spinbox.setRange(0, 1)
-        self.pick_eye_spinbox.setValue(0)
+        self.pick_eye_spinbox.setRange(0, 2)
+        self.pick_eye_spinbox.setValue(2)
         self.pick_eye_layout.addWidget(self.pick_eye_spinbox)
 
         self.eye_x_spinbox = QSpinBox()
-        self.eye_x_spinbox.setRange(0, 240)
-        self.eye_x_spinbox.setValue(120)
+        self.eye_x_spinbox.setRange(-120, 120)
+        self.eye_x_spinbox.setValue(0)
         self.eye_x_spinbox.setSuffix(" px")
 
         self.eye_y_spinbox = QSpinBox()
-        self.eye_y_spinbox.setRange(0, 240)
-        self.eye_y_spinbox.setValue(120)
+        self.eye_y_spinbox.setRange(-120, 120)
+        self.eye_y_spinbox.setValue(0)
         self.eye_y_spinbox.setSuffix(" px")
-
+# END OF EYES #   
         self.head_azimuth_spinbox = QSpinBox()
         self.head_azimuth_spinbox.setRange(0, 180)
-        self.head_azimuth_spinbox.setValue(90)
+        self.head_azimuth_spinbox.setValue(0)
         self.head_azimuth_spinbox.setSuffix(" °")
 
         self.head_elevation_spinbox = QSpinBox()
         self.head_elevation_spinbox.setRange(0, 180)
-        self.head_elevation_spinbox.setValue(90)        
+        self.head_elevation_spinbox.setValue(0)        
         self.head_elevation_spinbox.setSuffix(" °")
         self.head_speed_spinbox = QSpinBox()
+        self.head_speed_spinbox.setRange(0, 100)
+        self.head_speed_spinbox.setValue(2)
         self.head_speed_spinbox.setSuffix(" rpm")
         self.set_head_button = QPushButton("Set head")
         self.set_head_button.clicked.connect(lambda: self.handlers.setHeadClicked(self.head_speed_spinbox, self.head_azimuth_spinbox, self.head_elevation_spinbox))

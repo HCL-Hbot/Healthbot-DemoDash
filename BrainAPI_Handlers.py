@@ -1,4 +1,5 @@
 from PyQt5.QtGui import QColor
+import time
 
 class Handlers:
     def __init__(self, serial_comm):
@@ -70,11 +71,11 @@ class Handlers:
         azimuth = head_azimuth_spinbox.value()
         elevation = head_elevation_spinbox.value()
         
-        command = f"\nM101 1 {speed}\r\n"  # First motor
+        command = f"M101 1 {speed}\r\n"  # First motor
+        self.serial_comm.send(command)
+        command = f"M102 1 {azimuth}\r\n" 
         self.serial_comm.send(command)
         command = f"M101 2 {speed}\r\n"  # Second motor
-        self.serial_comm.send(command)
-        command = f"M102 1 {azimuth}\r\n"  # First motor
         self.serial_comm.send(command)
         command = f"M102 2 {elevation}\r\n"
         self.serial_comm.send(command)

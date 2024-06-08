@@ -14,23 +14,17 @@ This repository contains the Healthbot Demonstration GUI Dashboard. This dashboa
 ## Installation
 1) Clone the repository:
 ```bash
-Copy code
 git clone https://github.com/your-username/Healthbot-DemoDash.git
 cd Healthbot-DemoDash
-Install the required dependencies:
 ```
 
 2) Install the required dependencies: 
 ```bash
-Copy code
-pip install pyqt5 pyqtserial
-Usage
-Run the application:
+pip install pyqt5
 ```
 
 3) Run the application:
 ```bash
-Copy code
 python main.py
 ```
 
